@@ -74,11 +74,13 @@ static _Thread_local jmp_buf zz_env;
         b = _tmp;     \
     } while (0);
 
+#define MAX(a, b) ((a) >= (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 void zz_set_memory_funcs(void *(*malloc) (size_t),
                          void *(*realloc) (void *, size_t, size_t),
                          void (*free) (void *, size_t));
 size_t zz_get_alloc_state(void);
+zz_err zz_inverse_euclidext(const zz_t *u, const zz_t *v, zz_t *t);
 
 #endif /* IMPL_ZZ_H */

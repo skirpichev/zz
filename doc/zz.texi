@@ -335,8 +335,7 @@ The coefficients @var{s} and @var{t} are same as for the extended
 Euclidean algorithm.
 
 Any output parameter can be set to @code{NULL}, if its value not required.
-Return @code{ZZ_MEM} on failure if @var{t} is @code{NULL}.  Else, can also
-return @code{ZZ_BUF}.
+Return @code{ZZ_MEM} on failure.
 @end deftypefun
 
 @deftypefun zz_err zz_lcm (const zz_t *@var{u}, const zz_t *@var{v}, zz_t *@var{w})

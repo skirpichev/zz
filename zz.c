@@ -1959,6 +1959,60 @@ free:
 }
 
 zz_err
+zz_inverse_euclidext(const zz_t *u, const zz_t *v, zz_t *t)
+{
+    zz_t r, newt, newr, q, t1, t2;
+    bool u_neg = u->negative;
+
+    if (zz_init(&r) || zz_init(&newt) || zz_init(&newr)
+        || zz_init(&q) || zz_init(&t1) || zz_init(&t2)
+        || zz_pos(v, &r) || zz_set_i32(1, &newt)
+        || zz_pos(u, &newr) || zz_set_i32(0, t))
+    {
+        /* LCOV_EXCL_START */
+clear2:
+        zz_clear(&r);
+        zz_clear(&newt);
+        zz_clear(&newr);
+        zz_clear(&q);
+        zz_clear(&t1);
+        zz_clear(&t2);
+        return ZZ_MEM;
+        /* LCOV_EXCL_STOP */
+    }
+    while (zz_cmp_i64(&newr, 0) != ZZ_EQ) {
+        if (zz_div(&r, &newr, &q, NULL)) {
+            goto clear2; /* LCOV_EXCL_LINE */
+        }
+        if (zz_pos(&newt, &t1) || zz_mul(&q, &newt, &t2)
+            || zz_sub(t, &t2, &newt) || zz_pos(&t1, t))
+        {
+            goto clear2; /* LCOV_EXCL_LINE */
+        }
+        if (zz_pos(&newr, &t1) || zz_mul(&q, &newr, &t2)
+            || zz_sub(&r, &t2, &newr) || zz_pos(&t1, &r))
+        {
+            goto clear2; /* LCOV_EXCL_LINE */
+        }
+    }
+    zz_clear(&newt);
+    zz_clear(&newr);
+    zz_clear(&q);
+    zz_clear(&t1);
+    zz_clear(&t2);
+    if (t->size) {
+        t->negative = t->negative != u_neg;
+    }
+    (void)zz_abs(&r, &r);
+    if (zz_cmp_i64(&r, 1) != ZZ_EQ) {
+        zz_clear(&r);
+        return ZZ_VAL;
+    }
+    zz_clear(&r);
+    return ZZ_OK;
+}
+
+zz_err
 zz_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
 {
     if (!s && !t) {
@@ -1996,7 +2050,6 @@ zz_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
     zz_t *volatile tmp_s = malloc(sizeof(zz_t));
     zz_digit_t *volatile tmp_s_digits = malloc(ZZ_DIGIT_T_BYTES
                                                * (size_t)(v->size + 1));
-    zz_err volatile ret = ZZ_MEM;
 
     if (!o1 || !o2 || !tmp_g || !tmp_s || !tmp_s_digits) {
         goto free; /* LCOV_EXCL_LINE */
@@ -2024,27 +2077,32 @@ zz_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
                        || (!u->negative && ssize < 0));
     free(tmp_s_digits);
     tmp_s_digits = NULL;
-    zz_clear(o1);
-    free(o1);
-    o1 = NULL;
     if (t) {
-        ret = zz_mul(u, tmp_s, o2);
-        if (ret) {
-            goto clear; /* LCOV_EXCL_LINE */
+        /* Use t = (g - u*s)/v, if no integer overflow is possible,
+           else compute t by Extended Euclidean algorithm */
+        if (MAX(u->size + tmp_s->size, tmp_g->size) < ZZ_DIGITS_MAX) {
+            if (zz_mul(u, tmp_s, o2) || zz_sub(tmp_g, o2, o2)
+                || zz_div(o2, v, t, NULL))
+            {
+                goto clear; /* LCOV_EXCL_LINE */
+            }
         }
-        ret = zz_sub(tmp_g, o2, o2);
-        if (ret) {
-            goto clear; /* LCOV_EXCL_LINE */
-        }
-        ret = zz_div(o2, v, t, NULL);
-        if (ret) {
-            goto clear; /* LCOV_EXCL_LINE */
+        else {
+            /* LCOV_EXCL_START */
+            if (zz_div(u, tmp_g, o1, NULL) || zz_div(v, tmp_g, o2, NULL)
+                || zz_inverse_euclidext(o2, o1, t))
+            {
+                goto clear;
+            }
+            /* LCOV_EXCL_STOP */
         }
     }
+    zz_clear(o1);
     zz_clear(o2);
+    free(o1);
     free(o2);
+    o1 = NULL;
     o2 = NULL;
-    ret = ZZ_MEM;
     if (s && zz_pos(tmp_s, s)) {
         goto clear; /* LCOV_EXCL_LINE */
     }
@@ -2068,7 +2126,7 @@ free:
     free(tmp_g);
     free(tmp_s);
     free(tmp_s_digits);
-    return ret;
+    return ZZ_MEM;
     /* LCOV_EXCL_STOP */
 }
 

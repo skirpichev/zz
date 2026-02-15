@@ -333,7 +333,6 @@ check_gcdext_bulk(void)
     }
 }
 
-
 void
 check_gcdext_examples(void)
 {
@@ -378,6 +377,96 @@ check_gcdext_examples(void)
     zz_clear(&v);
     zz_clear(&a);
     zz_clear(&b);
+}
+
+zz_err
+zz_ref_invert(const zz_t *u, zz_t *v, zz_t *w)
+{
+    mpz_t z, g;
+    TMP_MPZ(mu, u);
+    TMP_MPZ(mv, v);
+    if (TMP_OVERFLOW) {
+        return ZZ_MEM;
+    }
+    mpz_init(z);
+    mpz_init(g);
+    if (v->size < u->size) {
+        mpz_gcdext(g, z, NULL, mu, mv);
+    }
+    else {
+        mpz_gcdext(g, NULL, z, mv, mu);
+    }
+    if (mpz_cmp_ui(g, 1) != 0) {
+        mpz_clear(z);
+        mpz_clear(g);
+        return ZZ_VAL;
+    }
+    mpz_clear(g);
+
+    zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size), abs(z->_mp_size), z->_mp_d};
+
+    if (zz_pos(&tmp, w)) {
+        mpz_clear(z);
+        return ZZ_MEM;
+    }
+    mpz_clear(z);
+    return ZZ_OK;
+}
+
+void
+check_invert_euclidext_bulk(void)
+{
+    zz_bitcnt_t bs = 512;
+
+    for (size_t i = 0; i < nsamples; i++) {
+        zz_t u, v, w, rw, rg;
+
+        if (zz_init(&u) || zz_random(bs, true, &u)) {
+            abort();
+        }
+        if (zz_init(&v) || zz_random(bs, true, &v)) {
+            abort();
+        }
+        if (zz_init(&w) || zz_init(&rw) || zz_init(&rg)) {
+            abort();
+        }
+        if (rand() % 2) {
+            zz_t c;
+
+            if (zz_init(&c) || zz_random(bs, true, &c)
+                || zz_mul(&c, &u, &u) || zz_mul(&c, &v, &v))
+            {
+                abort();
+            }
+            zz_clear(&c);
+        }
+        if (zz_ref_gcdext(&u, &v, &rg, &w, &rw)) {
+            abort();
+        }
+        if (zz_cmp(&rg, 1) != ZZ_EQ && zz_ref_invert(&u, &v, &rw) != ZZ_VAL) {
+            abort();
+        }
+        if (zz_cmp(&rg, 1) != ZZ_EQ
+            && zz_inverse_euclidext(&u, &v, &w) != ZZ_VAL)
+        {
+            abort();
+        }
+        if (zz_cmp(&rg, 1) != ZZ_EQ
+            && (zz_div(&u, &rg, &u, NULL) || zz_div(&v, &rg, &v, NULL)))
+        {
+            abort();
+        }
+        if (zz_ref_invert(&u, &v, &rw)
+            || zz_inverse_euclidext(&u, &v, &w) || zz_cmp(&w, &rw) != ZZ_EQ)
+        {
+            abort();
+        }
+        zz_clear(&u);
+        zz_clear(&v);
+        zz_clear(&w);
+        zz_clear(&rw);
+        zz_clear(&rg);
+    }
 }
 
 void
@@ -621,6 +710,7 @@ int main(void)
     check_isneg();
     check_gcdext_bulk();
     check_gcdext_examples();
+    check_invert_euclidext_bulk();
     check_fromto_double();
     check_sizeinbase();
     check_fromto_i32();
