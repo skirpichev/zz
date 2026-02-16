@@ -40,14 +40,17 @@
 
 #define ZZ_DIGIT_T_MAX UINT64_MAX
 #define ZZ_DIGIT_T_BYTES 8
+#define ZZ_DIGIT_T_BITS 64
 #ifndef _WIN32
 #  define ZZ_BITS_MAX UINT64_MAX
 #  define ZZ_DIGITS_MAX (zz_size_t)(ZZ_BITS_MAX/ZZ_DIGIT_T_BITS)
 #else
-#  define ZZ_DIGITS_MAX INT32_MAX
+   /* Set little smaller than maximal zz_size_t value to
+      avoid overflows in zz_size_t on _WIN32.  See computation
+      of s in zz_gcdext() */
+#  define ZZ_DIGITS_MAX (INT32_MAX - 1)
 #  define ZZ_BITS_MAX (zz_bitcnt_t)INT32_MAX*ZZ_DIGIT_T_BITS
 #endif
-#define ZZ_DIGIT_T_BITS 64
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic push

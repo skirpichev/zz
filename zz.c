@@ -2048,6 +2048,8 @@ zz_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
     zz_t *volatile o2 = malloc(sizeof(zz_t));
     zz_t *volatile tmp_g = malloc(sizeof(zz_t));
     zz_t *volatile tmp_s = malloc(sizeof(zz_t));
+    /* v->size + 1 can be > ZZ_DIGITS_MAX, but it should
+       not overflow zz_size_t type */
     zz_digit_t *volatile tmp_s_digits = malloc(ZZ_DIGIT_T_BYTES
                                                * (size_t)(v->size + 1));
 
@@ -2069,6 +2071,7 @@ zz_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
                                         o1->digits, u->size, o2->digits,
                                         v->size);
     tmp_g->negative = false;
+    /* Now s either 1 or |s| < v/(2g) */
     if (zz_resize((zz_size_t)imaxabs(ssize), tmp_s)) {
         goto clear; /* LCOV_EXCL_LINE */
     }
