@@ -351,11 +351,15 @@ positive or zero, if either @var{u} or @var{v} are zero.
 
 @deftypefun zz_err zz_fac (uint64_t @var{u}, zz_t *@var{v})
 Set @var{v} to @math{@var{u}!}.
+
+The @var{u} expected to be less or equal than @code{ULONG_MAX}.
 @end deftypefun
 
 @deftypefun zz_err zz_bin (uint64_t @var{n}, uint64_t @var{k}, zz_t *@var{v})
 Set @var{v} to the binomial coefficient @m{\left({n}\atop{k}\right),@var{n}
 over @var{k}}.
+
+@var{n} and @var{k} expected to be less or equal than @code{ULONG_MAX}.
 @end deftypefun
 
 @node Import and Export, Miscellaneous Functions, Combinatorics, Functions
