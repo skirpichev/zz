@@ -398,6 +398,18 @@ check_binop_examples(void)
     if (zz_set(1, &v) || zz_div(1, &v, NULL, NULL) != ZZ_OK) {
         abort();
     }
+    if (zz_set(1, &u) || zz_add(&u, 1U, &u) || zz_cmp(&u, 2) != ZZ_EQ) {
+        abort();
+    }
+    if (zz_set(3, &u) || zz_sub(&u, 1U, &u) || zz_cmp(&u, 2) != ZZ_EQ) {
+        abort();
+    }
+    if (zz_set(3, &u) || zz_sub(1U, &u, &u) || zz_cmp(&u, -2) != ZZ_EQ) {
+        abort();
+    }
+    if (zz_set(-3, &u) || zz_sub(1U, &u, &u) || zz_cmp(&u, 4) != ZZ_EQ) {
+        abort();
+    }
     zz_clear(&u);
     zz_clear(&v);
 }

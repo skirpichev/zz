@@ -981,12 +981,11 @@ zz_addsub(const zz_t *u, const zz_t *v, bool subtract, zz_t *w)
 }
 
 static zz_err
-zz_addsub_i64(const zz_t *u, int64_t v, bool subtract, zz_t *w)
+zz_addsub_u64(const zz_t *u, uint64_t v, bool subtract, zz_t *w)
 {
-    bool negu = u->negative, negv = subtract ? v >= 0 : v < 0;
+    bool negu = u->negative, negv = subtract;
     bool same_sign = negu == negv;
     zz_size_t u_size = u->size, v_size = v != 0;
-    zz_digit_t digit = (zz_digit_t)imaxabs(v);
 
     if (!u_size || u_size < v_size) {
         assert(!u_size);
@@ -994,7 +993,7 @@ zz_addsub_i64(const zz_t *u, int64_t v, bool subtract, zz_t *w)
             return ZZ_MEM; /* LCOV_EXCL_LINE */
         }
         if (v_size) {
-            w->digits[0] = digit;
+            w->digits[0] = v;
         }
         if (w->size) {
             w->negative = negv;
@@ -1010,22 +1009,30 @@ zz_addsub_i64(const zz_t *u, int64_t v, bool subtract, zz_t *w)
     }
     w->negative = negu;
     if (same_sign) {
-        w->digits[w->size - 1] = mpn_add_1(w->digits, u->digits, u_size, digit);
+        w->digits[w->size - 1] = mpn_add_1(w->digits, u->digits, u_size, v);
     }
     else if (u_size != 1) {
-        mpn_sub_1(w->digits, u->digits, u_size, digit);
+        mpn_sub_1(w->digits, u->digits, u_size, v);
     }
     else {
-        if (u->digits[0] < digit) {
-            w->digits[0] = digit - u->digits[0];
+        if (u->digits[0] < v) {
+            w->digits[0] = v - u->digits[0];
             w->negative = negv;
         }
         else {
-            w->digits[0] = u->digits[0] - digit;
+            w->digits[0] = u->digits[0] - v;
         }
     }
     zz_normalize(w);
     return ZZ_OK;
+}
+
+zz_err
+zz_addsub_i64(const zz_t *u, int64_t v, bool subtract, zz_t *w)
+{
+    uint64_t uv = v < 0 ? -((uint64_t)(v + 1) - 1) : (uint64_t)v;
+
+    return zz_addsub_u64(u, uv, subtract ? v >= 0 : v < 0, w);
 }
 
 zz_err
@@ -1038,6 +1045,27 @@ zz_err
 zz_sub(const zz_t *u, const zz_t *v, zz_t *w)
 {
     return zz_addsub(u, v, true, w);
+}
+
+zz_err
+zz_add_u64(const zz_t *u, uint64_t v, zz_t *w)
+{
+    return zz_addsub_u64(u, v, false, w);
+}
+
+zz_err
+zz_sub_u64(const zz_t *u, uint64_t v, zz_t *w)
+{
+    return zz_addsub_u64(u, v, true, w);
+}
+
+zz_err
+zz_u64_sub(uint64_t u, const zz_t *v, zz_t *w)
+{
+    if (zz_neg(v, w)) {
+        return ZZ_MEM; /* LCOV_EXCL_LINE */
+    }
+    return zz_addsub_u64(w, u, false, w);
 }
 
 zz_err

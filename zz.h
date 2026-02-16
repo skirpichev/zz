@@ -78,9 +78,12 @@ zz_err zz_get_str(const zz_t *u, int base, char *str);
 
 zz_err zz_add(const zz_t *u, const zz_t *v, zz_t *w);
 zz_err zz_add_i64(const zz_t *u, int64_t v, zz_t *w);
+zz_err zz_add_u64(const zz_t *u, uint64_t v, zz_t *w);
 zz_err zz_sub(const zz_t *u, const zz_t *v, zz_t *w);
 zz_err zz_sub_i64(const zz_t *u, int64_t v, zz_t *w);
 zz_err zz_i64_sub(int64_t u, const zz_t *v, zz_t *w);
+zz_err zz_sub_u64(const zz_t *u, uint64_t v, zz_t *w);
+zz_err zz_u64_sub(uint64_t u, const zz_t *v, zz_t *w);
 zz_err zz_pos(const zz_t *u, zz_t *v);
 zz_err zz_neg(const zz_t *u, zz_t *v);
 zz_err zz_abs(const zz_t *u, zz_t *v);
@@ -98,6 +101,12 @@ zz_i64_add(int64_t u, const zz_t *v, zz_t *w)
 }
 
 static inline zz_err
+zz_u64_add(uint64_t u, const zz_t *v, zz_t *w)
+{
+    return zz_add_u64(v, u, w);
+}
+
+static inline zz_err
 zz_i64_mul(int64_t u, const zz_t *v, zz_t *w)
 {
     return zz_mul_i64(v, u, w);
@@ -109,31 +118,49 @@ zz_u64_mul(uint64_t u, const zz_t *v, zz_t *w)
     return zz_mul_u64(v, u, w);
 }
 
-#define zz_add(U, V, W)                                   \
-    _Generic((U),                                         \
-             int: _Generic((V),                           \
-                           default: zz_i64_add),          \
-             long: _Generic((V),                          \
-                            default: zz_i64_add),         \
-             long long: _Generic((V),                     \
-                                 default: zz_i64_add),    \
-             default: _Generic((V),                       \
-                               int: zz_add_i64,           \
-                               long: zz_add_i64,          \
-                               long long: zz_add_i64,     \
+#define zz_add(U, V, W)                                         \
+    _Generic((U),                                               \
+             int: _Generic((V),                                 \
+                           default: zz_i64_add),                \
+             long: _Generic((V),                                \
+                            default: zz_i64_add),               \
+             long long: _Generic((V),                           \
+                                 default: zz_i64_add),          \
+             unsigned int: _Generic((V),                        \
+                                    default: zz_u64_add),       \
+             unsigned long: _Generic((V),                       \
+                                     default: zz_u64_add),      \
+             unsigned long long: _Generic((V),                  \
+                                          default: zz_u64_add), \
+             default: _Generic((V),                             \
+                               int: zz_add_i64,                 \
+                               long: zz_add_i64,                \
+                               long long: zz_add_i64,           \
+                               unsigned int: zz_add_u64,        \
+                               unsigned long: zz_add_u64,       \
+                               unsigned long long: zz_add_u64,  \
                                default: zz_add))(U, V, W)
-#define zz_sub(U, V, W)                                   \
-    _Generic((U),                                         \
-             int: _Generic((V),                           \
-                           default: zz_i64_sub),          \
-             long: _Generic((V),                          \
-                            default: zz_i64_sub),         \
-             long long: _Generic((V),                     \
-                                 default: zz_i64_sub),    \
-             default: _Generic((V),                       \
-                               int: zz_sub_i64,           \
-                               long: zz_sub_i64,          \
-                               long long: zz_sub_i64,     \
+#define zz_sub(U, V, W)                                         \
+    _Generic((U),                                               \
+             int: _Generic((V),                                 \
+                           default: zz_i64_sub),                \
+             long: _Generic((V),                                \
+                            default: zz_i64_sub),               \
+             long long: _Generic((V),                           \
+                                 default: zz_i64_sub),          \
+             unsigned int: _Generic((V),                        \
+                                    default: zz_u64_sub),       \
+             unsigned long: _Generic((V),                       \
+                                     default: zz_u64_sub),      \
+             unsigned long long: _Generic((V),                  \
+                                          default: zz_u64_sub), \
+             default: _Generic((V),                             \
+                               int: zz_sub_i64,                 \
+                               long: zz_sub_i64,                \
+                               long long: zz_sub_i64,           \
+                               unsigned int: zz_sub_u64,        \
+                               unsigned long: zz_sub_u64,       \
+                               unsigned long long: zz_sub_u64,  \
                                default: zz_sub))(U, V, W)
 #define zz_mul(U, V, W)                                         \
     _Generic((U),                                               \

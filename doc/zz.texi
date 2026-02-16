@@ -204,12 +204,15 @@ space, which can be estimated by @code{zz_sizeinbase(@var{u}, base)}.  Return
 
 @deftypefun zz_err zz_add (const zz_t *@var{u}, const zz_t *@var{v}, zz_t *@var{w})
 @deftypefunx zz_err zz_add_i64 (const zz_t *@var{u}, int64_t @var{v}, zz_t *@var{w})
+@deftypefunx zz_err zz_add_u64 (const zz_t *@var{u}, uint64_t @var{v}, zz_t *@var{w})
 Set @var{w} to @math{@var{u} + @var{v}}.  Available as @code{zz_add} macro.
 @end deftypefun
 
 @deftypefun zz_err zz_sub (const zz_t *@var{u}, const zz_t *@var{v}, zz_t *@var{w})
 @deftypefunx zz_err zz_sub_i64 (const zz_t *@var{u}, int64_t @var{v}, zz_t *@var{w})
 @deftypefunx zz_err zz_i64_sub (int64_t @var{u}, const zz_t *@var{v}, zz_t *@var{w})
+@deftypefunx zz_err zz_sub_u64 (const zz_t *@var{u}, uint64_t @var{v}, zz_t *@var{w})
+@deftypefunx zz_err zz_u64_sub (uint64_t @var{u}, const zz_t *@var{v}, zz_t *@var{w})
 Set @var{w} to @math{@var{u} - @var{v}}.  Available as @code{zz_sub} macro.
 @end deftypefun
 
