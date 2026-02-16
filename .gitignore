@@ -47,6 +47,7 @@ tests/t-misc
 tests/t-pow
 tests/t-str
 tests/t-unop
+tests/*.gcda
 doc/zz.html/
 doc/zz.t2p/
 coverage.info
