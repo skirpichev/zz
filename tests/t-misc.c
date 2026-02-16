@@ -71,6 +71,23 @@ check_lsbpos(void)
     zz_clear(&u);
 }
 
+void
+check_bitcnt(void)
+{
+    zz_t u;
+
+    if (zz_init(&u) || zz_set(0, &u)) {
+        abort();
+    }
+    if (zz_bitcnt(&u) != 0) {
+        abort();
+    }
+    if (zz_set(3, &u) || zz_bitcnt(&u) != 2) {
+        abort();
+    }
+    zz_clear(&u);
+}
+
 zz_err
 zz_ref_sqrtrem(const zz_t *u, zz_t *v, zz_t *w)
 {
@@ -703,6 +720,7 @@ int main(void)
     check_cmp();
     check_cmp_bulk();
     check_lsbpos();
+    check_bitcnt();
     check_sqrtrem_bulk();
     check_sqrtrem_examples();
     check_bin();

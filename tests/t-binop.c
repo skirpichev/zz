@@ -522,11 +522,18 @@ check_shift_examples(void)
     {
         abort();
     }
-    if (zz_set(1, &u) ||
-        zz_mul_2exp(&u, ZZ_BITS_MAX, &u) != ZZ_BUF)
+    if (zz_set(1, &u) || zz_mul_2exp(&u, 64, &u)
+        || zz_mul_2exp(&u, ZZ_BITS_MAX, &u) != ZZ_BUF)
     {
         abort();
     }
+#if _WIN32
+    if (zz_set(1, &u)
+        || zz_mul_2exp(&u, UINT64_MAX, &u) != ZZ_BUF)
+    {
+        abort();
+    }
+#endif
     if (zz_set(0x7fffffffffffffffLL, &u)) {
         abort();
     }

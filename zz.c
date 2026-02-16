@@ -1470,25 +1470,28 @@ zz_mul_2exp(const zz_t *u, zz_bitcnt_t shift, zz_t *v)
         v->size = 0;
         return ZZ_OK;
     }
-    if (shift > ZZ_BITS_MAX - zz_bitcnt(u)) {
+    if (shift > ZZ_BITS_MAX) {
         return ZZ_BUF;
     }
 
     zz_size_t whole = (zz_size_t)(shift / ZZ_DIGIT_T_BITS);
-    zz_size_t u_size = u->size, v_size = u_size + whole;
+    zz_size_t u_size = u->size;
+    int64_t v_size = (int64_t)u_size + whole;
 
     shift %= ZZ_DIGIT_T_BITS;
-    if (shift && v_size == ZZ_DIGITS_MAX) {
-        return ZZ_BUF; /* LCOV_EXCL_LINE */
+    v_size += (bool)shift;
+    if (v_size > ZZ_DIGITS_MAX) {
+        return ZZ_BUF;
     }
-    if (zz_resize(v_size + (bool)shift, v)) {
+    if (zz_resize((zz_size_t)v_size, v)) {
         return ZZ_MEM; /* LCOV_EXCL_LINE */
     }
     v->negative = u->negative;
     if (shift) {
-        v->size -= !(bool)(v->digits[v_size] = mpn_lshift(v->digits + whole,
-                                                          u->digits, u_size,
-                                                          (unsigned int)shift));
+        v->size -= !(bool)(v->digits[v->size - 1]
+                           = mpn_lshift(v->digits + whole,
+                                        u->digits, u_size,
+                                        (unsigned int)shift));
     }
     else {
         mpn_copyd(v->digits + whole, u->digits, u_size);

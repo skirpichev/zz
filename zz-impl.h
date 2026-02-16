@@ -49,7 +49,7 @@
       avoid overflows in zz_size_t on _WIN32.  See computation
       of s in zz_gcdext() */
 #  define ZZ_DIGITS_MAX (INT32_MAX - 1)
-#  define ZZ_BITS_MAX (zz_bitcnt_t)INT32_MAX*ZZ_DIGIT_T_BITS
+#  define ZZ_BITS_MAX (zz_bitcnt_t)ZZ_DIGITS_MAX*ZZ_DIGIT_T_BITS
 #endif
 
 #ifdef __GNUC__
