@@ -63,6 +63,7 @@ static _Thread_local jmp_buf zz_env;
 #define TMP_OVERFLOW (setjmp(zz_env) == 1)
 
 #define ISNEG(u) ((u)->negative)
+#define SETNEG(u, v) ((v)->negative = u)
 
 #define TMP_MPZ(z, u)                                   \
     mpz_t z;                                            \

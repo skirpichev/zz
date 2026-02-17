@@ -62,8 +62,8 @@ zz_random(zz_bitcnt_t bc, bool s, zz_t *u)
         return ZZ_MEM;
     }
     mpz_clear(z);
-    if (s) {
-        u->negative = rand() % 2;
+    if (s && rand() % 2) {
+        zz_neg(u, u);
     }
     return ZZ_OK;
 }
