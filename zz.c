@@ -358,9 +358,10 @@ zz_cmp(const zz_t *u, const zz_t *v)
         return ZZ_EQ;
     }
 
-    zz_ord sign = u->negative ? ZZ_LT : ZZ_GT;
+    bool u_negative = ISNEG(u);
+    zz_ord sign = u_negative ? ZZ_LT : ZZ_GT;
 
-    if (u->negative != v->negative) {
+    if (u_negative != ISNEG(v)) {
         return sign;
     }
     else if (u->size != v->size) {
@@ -369,16 +370,17 @@ zz_cmp(const zz_t *u, const zz_t *v)
 
     zz_ord r = mpn_cmp(u->digits, v->digits, u->size);
 
-    return u->negative ? -r : r;
+    return u_negative ? -r : r;
 }
 
 zz_ord
 zz_cmp_i64(const zz_t *u, int64_t v)
 {
-    zz_ord sign = u->negative ? ZZ_LT : ZZ_GT;
+    bool u_negative = ISNEG(u);
+    zz_ord sign = u_negative ? ZZ_LT : ZZ_GT;
     bool v_negative = v < 0;
 
-    if (u->negative != v_negative) {
+    if (u_negative != v_negative) {
         return sign;
     }
     else if (u->size != 1) {
@@ -394,7 +396,7 @@ zz_cmp_i64(const zz_t *u, int64_t v)
     else if (u->digits[0] > digit) {
         r = ZZ_GT;
     }
-    return u->negative ? -r : r;
+    return u_negative ? -r : r;
 }
 
 zz_err
@@ -512,7 +514,7 @@ zz_get_i32(const zz_t *u, int32_t *v)
 
     zz_digit_t uv = u->digits[0];
 
-    if (u->negative) {
+    if (ISNEG(u)) {
         if (uv <= INT32_MAX + (zz_digit_t)1) {
             *v = -1 - (int32_t)((uv - 1) & INT32_MAX);
             return ZZ_OK;
@@ -542,7 +544,7 @@ zz_get_i64(const zz_t *u, int64_t *v)
 
     zz_digit_t uv = u->digits[0];
 
-    if (u->negative) {
+    if (ISNEG(u)) {
         if (uv <= INT64_MAX + (zz_digit_t)1) {
             *v = -1 - (int64_t)((uv - 1) & INT64_MAX);
             return ZZ_OK;
@@ -560,7 +562,7 @@ zz_get_i64(const zz_t *u, int64_t *v)
 zz_err
 zz_get_u32(const zz_t *u, uint32_t *v)
 {
-    if (u->negative) {
+    if (ISNEG(u)) {
         return ZZ_VAL;
     }
     if (!u->size) {
@@ -577,7 +579,7 @@ zz_get_u32(const zz_t *u, uint32_t *v)
 zz_err
 zz_get_u64(const zz_t *u, uint64_t *v)
 {
-    if (u->negative) {
+    if (ISNEG(u)) {
         return ZZ_VAL;
     }
     if (u->size > 1) {
@@ -596,7 +598,7 @@ zz_iszero(const zz_t *u)
 bool
 zz_isneg(const zz_t *u)
 {
-    return u->negative;
+    return ISNEG(u);
 }
 
 bool
@@ -615,7 +617,7 @@ zz_pos(const zz_t *u, zz_t *v)
         if (zz_resize(u->size, v)) {
             return ZZ_MEM; /* LCOV_EXCL_LINE */
         }
-        v->negative = u->negative;
+        v->negative = ISNEG(u);
         mpn_copyi(v->digits, u->digits, u->size);
     }
     return ZZ_OK;
@@ -638,7 +640,7 @@ zz_neg(const zz_t *u, zz_t *v)
         return ZZ_MEM; /* LCOV_EXCL_LINE */
     }
     if (v->size) {
-        v->negative = !u->negative;
+        v->negative = !ISNEG(u);
     }
     return ZZ_OK;
 }
@@ -672,7 +674,7 @@ zz_get_str(const zz_t *u, int base, char *str)
     unsigned char *p = (unsigned char *)str;
     size_t len;
 
-    if (u->negative) {
+    if (ISNEG(u)) {
         *(p++) = '-';
     }
     /* We use undocumented feature of mpn_get_str(): u->size can be 0 */
@@ -878,7 +880,7 @@ zz_err
 zz_get_double(const zz_t *u, double *d)
 {
     if (u->size > DBL_MAX_EXP/ZZ_DIGIT_T_BITS + 1) {
-        *d = u->negative ? -INFINITY : INFINITY;
+        *d = ISNEG(u) ? -INFINITY : INFINITY;
         return ZZ_BUF;
     }
 
@@ -1033,7 +1035,7 @@ zz_export(const zz_t *u, zz_layout layout, size_t len, void *digits)
 static zz_err
 zz_addsub(const zz_t *u, const zz_t *v, bool subtract, zz_t *w)
 {
-    bool negu = u->negative, negv = subtract ? !v->negative : v->negative;
+    bool negu = ISNEG(u), negv = subtract ? !ISNEG(v) : ISNEG(v);
     bool same_sign = negu == negv;
     zz_size_t u_size = u->size, v_size = v->size;
 
@@ -1078,7 +1080,7 @@ zz_addsub(const zz_t *u, const zz_t *v, bool subtract, zz_t *w)
 static zz_err
 zz_addsub_u64(const zz_t *u, uint64_t v, bool subtract, zz_t *w)
 {
-    bool negu = u->negative, negv = subtract;
+    bool negu = ISNEG(u), negv = subtract;
     bool same_sign = negu == negv;
     zz_size_t u_size = u->size, v_size = v != 0;
 
@@ -1189,7 +1191,7 @@ zz_mul(const zz_t *u, const zz_t *v, zz_t *w)
         SWAP(const zz_t *, u, v);
     }
     if (v->size <= 1) {
-        bool w_negative = u->negative != v->negative; /* in case v == w */
+        bool w_negative = ISNEG(u) != ISNEG(v); /* in case v == w */
         zz_err ret = zz_mul_u64(u, v->size ? v->digits[0] : 0, w);
 
         if (w->size) {
@@ -1236,7 +1238,7 @@ zz_mul(const zz_t *u, const zz_t *v, zz_t *w)
     if (zz_resize((zz_size_t)w_size, w) || TMP_OVERFLOW) {
         return ZZ_MEM;
     }
-    w->negative = u->negative != v->negative;
+    w->negative = ISNEG(u) != ISNEG(v);
     if (u->size == v->size) {
         if (u != v) {
             mpn_mul_n(w->digits, u->digits, v->digits, u->size);
@@ -1268,7 +1270,7 @@ zz_mul_u64(const zz_t *u, uint64_t v, zz_t *w)
     if (zz_resize(u_size + 1, w) || TMP_OVERFLOW) {
         return ZZ_MEM; /* LCOV_EXCL_LINE */
     }
-    w->negative = u->negative;
+    w->negative = ISNEG(u);
     w->digits[w->size - 1] = mpn_mul_1(w->digits, u->digits, u_size, v);
     w->size -= w->digits[w->size - 1] == 0;
     assert(w->size >= 1);
@@ -1281,7 +1283,7 @@ zz_mul_i64(const zz_t *u, int64_t v, zz_t *w)
     zz_err ret = zz_mul_u64(u, (zz_digit_t)imaxabs(v), w);
 
     if (w->size) {
-        w->negative = u->negative != (v < 0);
+        w->negative = ISNEG(u) != (v < 0);
     }
     return ret;
 }
@@ -1327,7 +1329,7 @@ zz_div(const zz_t *u, const zz_t *v, zz_t *q, zz_t *r)
         }
     }
     else if (u->size < v->size) {
-        if (u->negative != v->negative) {
+        if (ISNEG(u) != ISNEG(v)) {
             if (zz_set_i64(-1, q) || zz_add(u, v, r)) {
                 goto err; /* LCOV_EXCL_LINE */
             }
@@ -1377,13 +1379,13 @@ zz_div(const zz_t *u, const zz_t *v, zz_t *q, zz_t *r)
         {
             goto err; /* LCOV_EXCL_LINE */
         }
-        q->negative = u->negative != v->negative;
-        r->negative = v->negative;
+        q->negative = ISNEG(u) != ISNEG(v);
+        r->negative = ISNEG(v);
         mpn_tdiv_qr(q->digits, r->digits, 0, u->digits, u_size, v->digits,
                     v->size);
         q->size -= q->digits[q->size - 1] == 0;
         zz_normalize(r);
-        if (q->negative && r->size) {
+        if (ISNEG(q) && r->size) {
             /* Note that we can't get carry here for q of maximal size,
                as this would mean |v| == 1, thus: r == 0 */
             assert(q->size < ZZ_DIGITS_MAX);
@@ -1412,7 +1414,7 @@ zz_div_i64(const zz_t *u, int64_t v, zz_t *q, zz_t *r)
     }
 
     zz_digit_t rl, uv = v < 0 ? -((zz_digit_t)(v + 1) - 1) : (zz_digit_t)v;
-    bool same_signs = u->negative == (v < 0);
+    bool same_signs = ISNEG(u) == (v < 0);
 
     if (q) {
         if (u->size) {
@@ -1475,7 +1477,7 @@ zz_i64_div(int64_t u, const zz_t *v, zz_t *q, zz_t *r)
         zz_err ret = ZZ_OK;
 
         if (zz_get_i64(v, &sv)) {
-            ret = zz_set_i64((u < 0) == v->negative || !u ? 0 : -1, q);
+            ret = zz_set_i64((u < 0) == ISNEG(v) || !u ? 0 : -1, q);
         }
         else {
             ret = zz_set_i64(fdiv_r(u, sv), q);
@@ -1486,7 +1488,7 @@ zz_i64_div(int64_t u, const zz_t *v, zz_t *q, zz_t *r)
     }
     if (r) {
         if (zz_get_i64(v, &sv)) {
-            if ((u < 0) == v->negative || !u) {
+            if ((u < 0) == ISNEG(v) || !u) {
                 return zz_set_i64(u, r);
             }
             return zz_add_i64(v, u, r);
@@ -1503,7 +1505,7 @@ zz_quo_2exp(const zz_t *u, zz_bitcnt_t shift, zz_t *v)
         return zz_set_i32(0, v);
     }
     if (shift >= (zz_bitcnt_t)u->size*ZZ_DIGIT_T_BITS) {
-        return zz_set_i64(u->negative ? -1 : 0, v);
+        return zz_set_i64(ISNEG(u) ? -1 : 0, v);
     }
 
     zz_size_t whole = (zz_size_t)(shift / ZZ_DIGIT_T_BITS);
@@ -1513,7 +1515,7 @@ zz_quo_2exp(const zz_t *u, zz_bitcnt_t shift, zz_t *v)
     shift %= ZZ_DIGIT_T_BITS;
     for (mp_size_t i = 0; i < whole; i++) {
         if (u->digits[i]) {
-            carry = u->negative;
+            carry = ISNEG(u);
             break;
         }
     }
@@ -1526,12 +1528,12 @@ zz_quo_2exp(const zz_t *u, zz_bitcnt_t shift, zz_t *v)
     if (zz_resize(size + extra, v)) {
         return ZZ_MEM; /* LCOV_EXCL_LINE */
     }
-    v->negative = u->negative;
+    v->negative = ISNEG(u);
     if (shift) {
         if (mpn_rshift(v->digits, u->digits + whole, size,
                        (unsigned int)shift))
         {
-            carry = u->negative;
+            carry = ISNEG(u);
         }
     }
     else {
@@ -1571,7 +1573,7 @@ zz_mul_2exp(const zz_t *u, zz_bitcnt_t shift, zz_t *v)
     if (zz_resize((zz_size_t)v_size, v)) {
         return ZZ_MEM; /* LCOV_EXCL_LINE */
     }
-    v->negative = u->negative;
+    v->negative = ISNEG(u);
     if (shift) {
         v->size -= !(bool)(v->digits[v->size - 1]
                            = mpn_lshift(v->digits + whole,
@@ -1590,7 +1592,7 @@ zz_invert(const zz_t *u, zz_t *v)
 {
     zz_size_t u_size = u->size;
 
-    if (u->negative) {
+    if (ISNEG(u)) {
         if (zz_resize(u_size, v)) {
             return ZZ_MEM; /* LCOV_EXCL_LINE */
         }
@@ -1610,7 +1612,7 @@ zz_invert(const zz_t *u, zz_t *v)
         v->digits[u_size] = mpn_add_1(v->digits, u->digits, u_size, 1);
         v->size -= v->digits[u_size] == 0;
     }
-    v->negative = !u->negative;
+    v->negative = !ISNEG(u);
     return ZZ_OK;
 }
 
@@ -1623,7 +1625,7 @@ zz_and(const zz_t *u, const zz_t *v, zz_t *w)
 
     zz_size_t u_size = u->size, v_size = v->size;
 
-    if (u->negative || v->negative) {
+    if (ISNEG(u) || ISNEG(v)) {
         zz_t o1, o2;
         zz_err ret = ZZ_MEM;
 
@@ -1635,7 +1637,7 @@ err:
             return ret;
             /* LCOV_EXCL_STOP */
         }
-        if (u->negative) {
+        if (ISNEG(u)) {
             ret = zz_invert(u, &o1);
             if (ret) {
                 goto err; /* LCOV_EXCL_LINE */
@@ -1644,7 +1646,7 @@ err:
             u = &o1;
             u_size = u->size;
         }
-        if (v->negative) {
+        if (ISNEG(v)) {
             ret = zz_invert(v, &o2);
             if (ret) {
                 goto err; /* LCOV_EXCL_LINE */
@@ -1657,7 +1659,7 @@ err:
             SWAP(const zz_t *, u, v);
             SWAP(zz_size_t, u_size, v_size);
         }
-        if (u->negative && v->negative) {
+        if (ISNEG(u) && ISNEG(v)) {
             if (!u_size) {
                 zz_clear(&o1);
                 zz_clear(&o2);
@@ -1680,7 +1682,7 @@ err:
             zz_clear(&o2);
             return ZZ_OK;
         }
-        else if (u->negative) {
+        else if (ISNEG(u)) {
             assert(v_size > 0);
             if (zz_resize(v_size, w)) {
                 goto err; /* LCOV_EXCL_LINE */
@@ -1740,7 +1742,7 @@ zz_or(const zz_t *u, const zz_t *v, zz_t *w)
 
     zz_size_t u_size = u->size, v_size = v->size;
 
-    if (u->negative || v->negative) {
+    if (ISNEG(u) || ISNEG(v)) {
         zz_t o1, o2;
         zz_err ret = ZZ_MEM;
 
@@ -1752,7 +1754,7 @@ err:
             return ret;
             /* LCOV_EXCL_STOP */
         }
-        if (u->negative) {
+        if (ISNEG(u)) {
             ret = zz_invert(u, &o1);
             if (ret) {
                 goto err; /* LCOV_EXCL_LINE */
@@ -1761,7 +1763,7 @@ err:
             u = &o1;
             u_size = u->size;
         }
-        if (v->negative) {
+        if (ISNEG(v)) {
             ret = zz_invert(v, &o2);
             if (ret) {
                 goto err; /* LCOV_EXCL_LINE */
@@ -1774,7 +1776,7 @@ err:
             SWAP(const zz_t *, u, v);
             SWAP(zz_size_t, u_size, v_size);
         }
-        if (u->negative && v->negative) {
+        if (ISNEG(u) && ISNEG(v)) {
             if (!v_size) {
                 zz_clear(&o1);
                 zz_clear(&o2);
@@ -1794,7 +1796,7 @@ err:
             zz_clear(&o2);
             return ZZ_OK;
         }
-        else if (u->negative) {
+        else if (ISNEG(u)) {
             assert(v_size > 0);
             if (u_size == ZZ_DIGITS_MAX) {
                 return ZZ_BUF; /* LCOV_EXCL_LINE */
@@ -1860,7 +1862,7 @@ zz_xor(const zz_t *u, const zz_t *v, zz_t *w)
 
     zz_size_t u_size = u->size, v_size = v->size;
 
-    if (u->negative || v->negative) {
+    if (ISNEG(u) || ISNEG(v)) {
         zz_t o1, o2;
         zz_err ret = ZZ_MEM;
 
@@ -1872,7 +1874,7 @@ err:
             return ret;
             /* LCOV_EXCL_STOP */
         }
-        if (u->negative) {
+        if (ISNEG(u)) {
             ret = zz_invert(u, &o1);
             if (ret) {
                 goto err; /* LCOV_EXCL_LINE */
@@ -1881,7 +1883,7 @@ err:
             u = &o1;
             u_size = u->size;
         }
-        if (v->negative) {
+        if (ISNEG(v)) {
             ret = zz_invert(v, &o2);
             if (ret) {
                 goto err; /* LCOV_EXCL_LINE */
@@ -1894,7 +1896,7 @@ err:
             SWAP(const zz_t *, u, v);
             SWAP(zz_size_t, u_size, v_size);
         }
-        if (u->negative && v->negative) {
+        if (ISNEG(u) && ISNEG(v)) {
             if (!u_size) {
                 zz_clear(&o1);
                 zz_clear(&o2);
@@ -1913,7 +1915,7 @@ err:
             zz_clear(&o2);
             return ZZ_OK;
         }
-        else if (u->negative) {
+        else if (ISNEG(u)) {
             assert(v_size > 0);
             if (u_size == ZZ_DIGITS_MAX) {
                 return ZZ_BUF; /* LCOV_EXCL_LINE */
@@ -2009,7 +2011,7 @@ zz_pow(const zz_t *u, uint64_t v, zz_t *w)
         return ZZ_MEM;
         /* LCOV_EXCL_STOP */
     }
-    w->negative = u->negative && v%2;
+    w->negative = ISNEG(u) && v%2;
     w->size = (zz_size_t)mpn_pow_1(w->digits, u->digits, u->size, v, tmp);
     free(tmp);
     if (zz_resize(w->size, w)) {
@@ -2078,7 +2080,7 @@ zz_err
 zz_inverse_euclidext(const zz_t *u, const zz_t *v, zz_t *t)
 {
     zz_t r, newt, newr, q, t1, t2;
-    bool u_neg = u->negative;
+    bool u_neg = ISNEG(u);
 
     if (zz_init(&r) || zz_init(&newt) || zz_init(&newr)
         || zz_init(&q) || zz_init(&t1) || zz_init(&t2)
@@ -2117,7 +2119,7 @@ clear2:
     zz_clear(&t1);
     zz_clear(&t2);
     if (t->size) {
-        t->negative = t->negative != u_neg;
+        t->negative = ISNEG(t) != u_neg;
     }
     (void)zz_abs(&r, &r);
     if (zz_cmp_i64(&r, 1) != ZZ_EQ) {
@@ -2148,7 +2150,7 @@ zz_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
             }
         }
         if (s) {
-            if (zz_set_i64(u->negative ? -1 : 1, s)) {
+            if (zz_set_i64(ISNEG(u) ? -1 : 1, s)) {
                 return ZZ_MEM; /* LCOV_EXCL_LINE */
             }
             s->size = u->size > 0; /* make 0 if u == 0 */
@@ -2192,8 +2194,8 @@ zz_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
         goto clear; /* LCOV_EXCL_LINE */
     }
     mpn_copyi(tmp_s->digits, tmp_s_digits, tmp_s->size);
-    tmp_s->negative = ((u->negative && ssize > 0)
-                       || (!u->negative && ssize < 0));
+    tmp_s->negative = ((ISNEG(u) && ssize > 0)
+                       || (!ISNEG(u) && ssize < 0));
     free(tmp_s_digits);
     tmp_s_digits = NULL;
     if (t) {
@@ -2353,7 +2355,7 @@ mem:
         return ZZ_MEM;
         /* LCOV_EXCL_STOP */
     }
-    if (v->negative) {
+    if (ISNEG(v)) {
         zz_err ret = zz_inverse(u, w, &o2);
 
         if (ret == ZZ_VAL) {
@@ -2387,7 +2389,7 @@ mem:
         /* LCOV_EXCL_STOP */
     }
     mpz_clear(z);
-    if (w->negative && res->size && zz_add(w, res, res)) {
+    if (ISNEG(w) && res->size && zz_add(w, res, res)) {
         goto mem; /* LCOV_EXCL_LINE */
     }
     zz_clear(&o1);
@@ -2398,7 +2400,7 @@ mem:
 zz_err
 zz_sqrtrem(const zz_t *u, zz_t *v, zz_t *w)
 {
-    if (u->negative) {
+    if (ISNEG(u)) {
         return ZZ_VAL;
     }
     v->negative = false;

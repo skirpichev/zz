@@ -529,7 +529,7 @@ check_shift_examples(void)
     {
         abort();
     }
-    if (u.negative || u.alloc < 1 || u.size != 1
+    if (zz_isneg(&u) || u.alloc < 1 || u.size != 1
         || u.digits[0] != 0xffffffffffffffffULL)
     {
         abort();
