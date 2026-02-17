@@ -58,7 +58,27 @@ check_cmp_bulk(void)
 }
 
 void
-check_lsbpos(void)
+check_lsbpos_bulk(void)
+{
+    zz_bitcnt_t bs = 512;
+
+    for (size_t i = 0; i < nsamples; i++) {
+        zz_t u;
+
+        if (zz_init(&u) || zz_random(bs, false, &u)) {
+            abort();
+        }
+
+        TMP_MPZ(mu, &u);
+        if (zz_lsbpos(&u) != mpz_scan1(mu, 0)) {
+            abort();
+        }
+        zz_clear(&u);
+    }
+}
+
+void
+check_lsbpos_examples(void)
 {
     zz_t u;
 
@@ -72,7 +92,27 @@ check_lsbpos(void)
 }
 
 void
-check_bitcnt(void)
+check_bitcnt_bulk(void)
+{
+    zz_bitcnt_t bs = 512;
+
+    for (size_t i = 0; i < nsamples; i++) {
+        zz_t u;
+
+        if (zz_init(&u) || zz_random(bs, false, &u)) {
+            abort();
+        }
+
+        TMP_MPZ(mu, &u);
+        if (zz_bitcnt(&u) != mpz_popcount(mu)) {
+            abort();
+        }
+        zz_clear(&u);
+    }
+}
+
+void
+check_bitcnt_examples(void)
 {
     zz_t u;
 
@@ -760,8 +800,10 @@ int main(void)
     }
     check_cmp();
     check_cmp_bulk();
-    check_lsbpos();
-    check_bitcnt();
+    check_lsbpos_bulk();
+    check_lsbpos_examples();
+    check_bitcnt_bulk();
+    check_bitcnt_examples();
     check_sqrtrem_bulk();
     check_sqrtrem_examples();
     check_bin();

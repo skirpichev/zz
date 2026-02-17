@@ -904,13 +904,49 @@ zz_bitlen(const zz_t *u)
 zz_bitcnt_t
 zz_lsbpos(const zz_t *u)
 {
+#if ULONG_MAX == ZZ_DIGIT_T_MAX
     return u->size ? mpn_scan1(u->digits, 0) : 0;
+#else
+    zz_bitcnt_t lsb_pos = 0;
+
+    for (zz_size_t i = 0; i < u->size; i++) {
+        zz_digit_t digit = u->digits[i];
+
+        if (digit) {
+            for (;;) {
+                if (digit & 1) {
+                    return lsb_pos;
+                }
+                lsb_pos += 1;
+                digit >>= 1;
+            }
+        }
+        else {
+            lsb_pos += 64;
+        }
+    }
+    return lsb_pos;
+#endif
 }
 
 zz_bitcnt_t
 zz_bitcnt(const zz_t *u)
 {
+#if ULONG_MAX == ZZ_DIGIT_T_MAX
     return u->size ? mpn_popcount(u->digits, u->size) : 0;
+#else
+    zz_bitcnt_t count = 0;
+
+    for (zz_size_t i = 0; i < u->size; i++) {
+        zz_digit_t digit = u->digits[i];
+
+        while (digit) {
+            count += digit & 1;
+            digit >>= 1;
+        }
+    }
+    return count;
+#endif
 }
 
 static const zz_layout native_layout = {
