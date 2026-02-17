@@ -431,6 +431,22 @@ zz_set_i64(int64_t u, zz_t *v)
     return ZZ_OK;
 }
 
+zz_err
+zz_set_u64(uint64_t u, zz_t *v)
+{
+    if (!u) {
+        v->size = 0;
+        v->negative = false;
+        return ZZ_OK;
+    }
+    if (zz_resize(1, v)) {
+        return ZZ_MEM; /* LCOV_EXCL_LINE */
+    }
+    v->negative = false;
+    v->digits[0] = u;
+    return ZZ_OK;
+}
+
 #define DIGITS_PER_DOUBLE ((53 + ZZ_DIGIT_T_BITS - 2) / ZZ_DIGIT_T_BITS + 1)
 
 zz_err
@@ -526,6 +542,36 @@ zz_get_i64(const zz_t *u, int64_t *v)
         }
     }
     return ZZ_BUF;
+}
+
+zz_err
+zz_get_u32(const zz_t *u, uint32_t *v)
+{
+    if (u->negative) {
+        return ZZ_VAL;
+    }
+    if (!u->size) {
+        *v = 0;
+        return ZZ_OK;
+    }
+    if (u->size > 1 || u->digits[0] > UINT32_MAX) {
+        return ZZ_BUF;
+    }
+    *v = (uint32_t)u->digits[0];
+    return ZZ_OK;
+}
+
+zz_err
+zz_get_u64(const zz_t *u, uint64_t *v)
+{
+    if (u->negative) {
+        return ZZ_VAL;
+    }
+    if (u->size > 1) {
+        return ZZ_BUF;
+    }
+    *v = u->size ? u->digits[0] : 0;
+    return ZZ_OK;
 }
 
 bool

@@ -155,6 +155,7 @@ Free the space occupied by @var{u} and set its value to 0.
 
 @deftypefun zz_err zz_set_i32 (int32_t @var{u}, zz_t *@var{v})
 @deftypefunx zz_err zz_set_i64 (int64_t @var{u}, zz_t *@var{v})
+@deftypefunx zz_err zz_set_u64 (uint64_t @var{u}, zz_t *@var{v})
 @deftypefunx zz_err zz_set_double (double @var{u}, zz_t *@var{v})
 Set @var{u} from @var{v}.  Available as @code{zz_set} macro.
 
@@ -182,9 +183,14 @@ single underscores interspersed between.
 
 @deftypefun zz_err zz_get_i32 (const zz_t *@var{u}, int32_t *@var{v})
 @deftypefunx zz_err zz_get_i64 (const zz_t *@var{u}, int64_t *@var{v})
+@deftypefunx zz_err zz_get_u32 (const zz_t *@var{u}, uint32_t *@var{v})
+@deftypefunx zz_err zz_get_u64 (const zz_t *@var{u}, uint64_t *@var{v})
 @deftypefunx zz_err zz_get_double (const zz_t *@var{u}, double *@var{v})
 Convert @var{u} to @var{v}.  Available as @code{zz_get} macro.  Return
 @code{ZZ_BUF} on failure.
+
+Only nonnegative @var{u} are acceptable for conversion to unsigned integer
+types.
 
 Conversion to double uses rounding to nearest, with the half to even
 tie-breaking rounding rule (roundTiesToEven in IEEE 754, the default).

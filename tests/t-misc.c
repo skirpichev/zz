@@ -543,6 +543,7 @@ check_fromto_i32(void)
 {
     zz_t u;
     int32_t v = 123, val;
+    uint32_t uval;
 
     if (zz_init(&u) || zz_set(v, &u)) {
         abort();
@@ -576,9 +577,34 @@ check_fromto_i32(void)
     if (zz_get(&u, &val) != ZZ_BUF) {
         abort();
     }
-    if (zz_set(1, &u) || zz_mul_2exp(&u, 65, &u)
+    if (zz_set(1, &u) || zz_mul_2exp(&u, 33, &u)
         || zz_get(&u, &val) != ZZ_BUF)
     {
+        abort();
+    }
+    if (zz_set(1, &u) || zz_mul_2exp(&u, 64, &u)
+        || zz_get(&u, &val) != ZZ_BUF)
+    {
+        abort();
+    }
+    if (zz_set(1U, &u) || zz_cmp(&u, 1) != ZZ_EQ) {
+        abort();
+    }
+    if (zz_get(&u, &uval) || uval != 1) {
+        abort();
+    }
+    if (zz_set(0U, &u) || zz_cmp(&u, 0) != ZZ_EQ) {
+        abort();
+    }
+    if (zz_get(&u, &uval) || uval != 0) {
+        abort();
+    }
+    if (zz_set(1, &u) || zz_mul_2exp(&u, 33, &u)
+        || zz_get(&u, &uval) != ZZ_BUF)
+    {
+        abort();
+    }
+    if (zz_set(-1, &u) || zz_get(&u, &uval) != ZZ_VAL) {
         abort();
     }
     zz_clear(&u);
@@ -589,11 +615,26 @@ check_fromto_i64(void)
 {
     zz_t u;
     int64_t val;
+    uint64_t uval;
 
     if (zz_init(&u) || zz_set(0, &u)) {
         abort();
     }
     if (zz_get(&u, &val) || val) {
+        abort();
+    }
+    if (zz_set(1ULL, &u) || zz_cmp(&u, 1) != ZZ_EQ) {
+        abort();
+    }
+    if (zz_get(&u, &uval) || uval != 1) {
+        abort();
+    }
+    if (zz_set(1, &u) || zz_mul_2exp(&u, 65, &u)
+        || zz_get(&u, &uval) != ZZ_BUF)
+    {
+        abort();
+    }
+    if (zz_set(-1, &u) || zz_get(&u, &uval) != ZZ_VAL) {
         abort();
     }
     zz_clear(&u);
