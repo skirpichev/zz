@@ -682,7 +682,7 @@ zz_get_str(const zz_t *u, int base, char *str)
         len = mpn_get_str(p, base, u->digits, u->size);
     }
     else { /* generic base, not power of 2, input might be clobbered */
-        zz_digit_t *volatile tmp = malloc(ZZ_DIGIT_T_BYTES * (size_t)u->alloc);
+        zz_digit_t *volatile tmp = malloc(ZZ_DIGIT_T_BYTES * (size_t)u->size);
 
         if (!tmp || TMP_OVERFLOW) {
             /* LCOV_EXCL_START */
