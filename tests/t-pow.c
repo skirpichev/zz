@@ -24,10 +24,7 @@ zz_ref_powm(const zz_t *u, const zz_t *v, const zz_t *w, zz_t *r)
     }
     mpz_init(z);
     mpz_powm(z, mu, mv, mw);
-
-    zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size), abs(z->_mp_size), z->_mp_d};
-
-    if (zz_pos(&tmp, r)) {
+    if (zz_set_mpz_t(z, r)) {
         mpz_clear(z);
         return ZZ_MEM;
     }
@@ -46,11 +43,7 @@ zz_ref_gcd(const zz_t *u, const zz_t *v, zz_t *w)
     }
     mpz_init(z);
     mpz_gcd(z, mu, mv);
-
-    zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size),
-                abs(z->_mp_size),
-                z->_mp_d};
-    if (zz_pos(&tmp, w)) {
+    if (zz_set_mpz_t(z, w)) {
         mpz_clear(z);
         return ZZ_MEM;
     }
@@ -190,10 +183,7 @@ zz_ref_pow(const zz_t *u, uint64_t v, zz_t *w)
     }
     mpz_init(z);
     mpz_pow_ui(z, mu, (unsigned long int)v);
-
-    zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size), abs(z->_mp_size), z->_mp_d};
-
-    if (zz_pos(&tmp, w)) {
+    if (zz_set_mpz_t(z, w)) {
         mpz_clear(z);
         return ZZ_MEM;
     }

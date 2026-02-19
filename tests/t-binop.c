@@ -24,12 +24,7 @@
         }                                               \
         mpz_init(z);                                    \
         mpz_##op(z, mu, mv);                            \
-                                                        \
-        zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size),  \
-                    abs(z->_mp_size),                   \
-                    z->_mp_d};                          \
-                                                        \
-        if (zz_pos(&tmp, w)) {                          \
+        if (zz_set_mpz_t(z, w)) {                       \
             mpz_clear(z);                               \
             return ZZ_MEM;                              \
         }                                               \
@@ -223,11 +218,7 @@ zz_ref_mul_2exp(const zz_t *u, zz_bitcnt_t v, zz_t *w)
     }
     mpz_init(z);
     mpz_mul_2exp(z, mu, (mp_bitcnt_t)v);
-
-    zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size),
-                abs(z->_mp_size),
-                z->_mp_d};
-    if (zz_pos(&tmp, w)) {
+    if (zz_set_mpz_t(z, w)) {
         mpz_clear(z);
         return ZZ_MEM;
     }
@@ -245,11 +236,7 @@ zz_ref_quo_2exp(const zz_t *u, zz_bitcnt_t v, zz_t *w)
     }
     mpz_init(z);
     mpz_fdiv_q_2exp(z, mu, (mp_bitcnt_t)v);
-
-    zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size),
-                abs(z->_mp_size),
-                z->_mp_d};
-    if (zz_pos(&tmp, w)) {
+    if (zz_set_mpz_t(z, w)) {
         mpz_clear(z);
         return ZZ_MEM;
     }

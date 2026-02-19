@@ -12,28 +12,23 @@
 
 #include "tests/tests.h"
 
-#define ZZ_UNOP_REF(op)                                \
-    zz_err                                             \
-    zz_ref_##op(const zz_t *u, zz_t *v)                \
-    {                                                  \
-        mpz_t z;                                       \
-        TMP_MPZ(mu, u);                                \
-        if (TMP_OVERFLOW) {                            \
-            return ZZ_MEM;                             \
-        }                                              \
-        mpz_init(z);                                   \
-        mpz_##op(z, mu);                               \
-                                                       \
-        zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size), \
-                    abs(z->_mp_size),                  \
-                    z->_mp_d};                         \
-                                                       \
-        if (zz_pos(&tmp, v)) {                         \
-            mpz_clear(z);                              \
-            return ZZ_MEM;                             \
-        }                                              \
-        mpz_clear(z);                                  \
-        return ZZ_OK;                                  \
+#define ZZ_UNOP_REF(op)                 \
+    zz_err                              \
+    zz_ref_##op(const zz_t *u, zz_t *v) \
+    {                                   \
+        mpz_t z;                        \
+        TMP_MPZ(mu, u);                 \
+        if (TMP_OVERFLOW) {             \
+            return ZZ_MEM;              \
+        }                               \
+        mpz_init(z);                    \
+        mpz_##op(z, mu);                \
+        if (zz_set_mpz_t(z, v)) {       \
+            mpz_clear(z);               \
+            return ZZ_MEM;              \
+        }                               \
+        mpz_clear(z);                   \
+        return ZZ_OK;                   \
     }
 
 #define TEST_UNOP_EXAMPLE(op, arg)                        \

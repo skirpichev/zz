@@ -85,5 +85,6 @@ void zz_set_memory_funcs(void *(*malloc) (size_t),
                          void (*free) (void *, size_t));
 size_t zz_get_alloc_state(void);
 zz_err zz_inverse_euclidext(const zz_t *u, const zz_t *v, zz_t *t);
+zz_err zz_set_mpz_t(mpz_t u, zz_t *v);
 
 #endif /* IMPL_ZZ_H */

@@ -57,10 +57,7 @@ zz_random(zz_bitcnt_t bc, bool s, zz_t *u)
     else {
         f(z, rnd_state, (mp_bitcnt_t)bc/8);
     }
-
-    zz_t tmp = {false, abs(z->_mp_size), abs(z->_mp_size), z->_mp_d};
-
-    if (zz_pos(&tmp, u)) {
+    if (zz_set_mpz_t(z, u)) {
         mpz_clear(z);
         return ZZ_MEM;
     }

@@ -128,12 +128,8 @@ zz_free(void *ptr, size_t size)
            }
            mpz_init(z);
            mpz_mul(z, a, b);
-
            // Success!  Resize w and copy z's content to it.
-           zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size),
-                       abs(z->_mp_size), z->_mp_d};
-
-           if (zz_pos(&tmp, w)) {
+           if (zz_set_mpz_t(z, w)) {
                mpz_clear(z);
                return ZZ_MEM;
            }
@@ -399,6 +395,17 @@ zz_cmp_i64(const zz_t *u, int64_t v)
         r = ZZ_GT;
     }
     return u->negative ? -r : r;
+}
+
+zz_err
+zz_set_mpz_t(mpz_t u, zz_t *v)
+{
+    if (zz_resize(abs(u->_mp_size), v)) {
+        return ZZ_MEM; /* LCOV_EXCL_LINE */
+    }
+    mpn_copyi(v->digits, u->_mp_d, v->size);
+    v->negative = u->_mp_size < 0;
+    return ZZ_OK;
 }
 
 zz_err
@@ -2383,14 +2390,12 @@ mem:
     }
     mpz_init(z);
     mpz_powm(z, b, e, m);
-    if (zz_resize(z->_mp_size, res)) {
+    if (zz_set_mpz_t(z, res)) {
         /* LCOV_EXCL_START */
         mpz_clear(z);
         goto mem;
         /* LCOV_EXCL_STOP */
     }
-    res->negative = false;
-    mpn_copyi(res->digits, z->_mp_d, res->size);
     mpz_clear(z);
     if (w->negative && res->size && zz_add(w, res, res)) {
         goto mem; /* LCOV_EXCL_LINE */
@@ -2463,13 +2468,12 @@ zz_fac(uint64_t u, zz_t *v)
 
     mpz_init(z);
     mpz_fac_ui(z, (unsigned long)u);
-    if (zz_resize(z->_mp_size, v)) {
+    if (zz_set_mpz_t(z, v)) {
         /* LCOV_EXCL_START */
         mpz_clear(z);
         return ZZ_MEM;
         /* LCOV_EXCL_STOP */
     }
-    mpn_copyi(v->digits, z->_mp_d, z->_mp_size);
     mpz_clear(z);
     return ZZ_OK;
 }
@@ -2490,13 +2494,12 @@ zz_bin(uint64_t n, uint64_t k, zz_t *v)
 
     mpz_init(z);
     mpz_bin_uiui(z, (unsigned long)n, (unsigned long)k);
-    if (zz_resize(z->_mp_size, v)) {
+    if (zz_set_mpz_t(z, v)) {
         /* LCOV_EXCL_START */
         mpz_clear(z);
         return ZZ_MEM;
         /* LCOV_EXCL_STOP */
     }
-    mpn_copyi(v->digits, z->_mp_d, z->_mp_size);
     mpz_clear(z);
     return ZZ_OK;
 }

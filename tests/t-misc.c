@@ -139,17 +139,13 @@ zz_ref_sqrtrem(const zz_t *u, zz_t *v, zz_t *w)
     mpz_init(z);
     mpz_init(r);
     mpz_sqrtrem(z, r, mu);
-
-    zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size), abs(z->_mp_size), z->_mp_d};
-
-    if (zz_pos(&tmp, v)) {
+    if (zz_set_mpz_t(z, v)) {
         mpz_clear(z);
         mpz_clear(r);
         return ZZ_MEM;
     }
     mpz_clear(z);
-    tmp = (zz_t){r->_mp_size < 0, abs(r->_mp_size), abs(r->_mp_size), r->_mp_d};
-    if (zz_pos(&tmp, w)) {
+    if (zz_set_mpz_t(r, w)) {
         mpz_clear(r);
         return ZZ_MEM;
     }
@@ -275,28 +271,20 @@ zz_ref_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
     mpz_init(zs);
     mpz_init(zt);
     mpz_gcdext(zg, zs, zt, mu, mv);
-
-    zz_t tmp = {zg->_mp_size < 0, abs(zg->_mp_size), abs(zg->_mp_size),
-                zg->_mp_d};
-
-    if (zz_pos(&tmp, g)) {
+    if (zz_set_mpz_t(zg, g)) {
         mpz_clear(zg);
         mpz_clear(zs);
         mpz_clear(zt);
         return ZZ_MEM;
     }
     mpz_clear(zg);
-    tmp = (zz_t){zs->_mp_size < 0, abs(zs->_mp_size), abs(zs->_mp_size),
-                 zs->_mp_d};
-    if (zz_pos(&tmp, s)) {
+    if (zz_set_mpz_t(zs, s)) {
         mpz_clear(zs);
         mpz_clear(zt);
         return ZZ_MEM;
     }
     mpz_clear(zs);
-    tmp = (zz_t){zt->_mp_size < 0, abs(zt->_mp_size), abs(zt->_mp_size),
-                 zt->_mp_d};
-    if (zz_pos(&tmp, t)) {
+    if (zz_set_mpz_t(zt, t)) {
         mpz_clear(zt);
         return ZZ_MEM;
     }
@@ -459,10 +447,7 @@ zz_ref_invert(const zz_t *u, zz_t *v, zz_t *w)
         return ZZ_VAL;
     }
     mpz_clear(g);
-
-    zz_t tmp = {z->_mp_size < 0, abs(z->_mp_size), abs(z->_mp_size), z->_mp_d};
-
-    if (zz_pos(&tmp, w)) {
+    if (zz_set_mpz_t(z, w)) {
         mpz_clear(z);
         return ZZ_MEM;
     }
