@@ -49,6 +49,12 @@ zz_get_bitcnt_max(void)
     return ZZ_BITS_MAX;
 }
 
+size_t
+zz_sizeof(const zz_t *u)
+{
+    return sizeof(zz_t) + (size_t)u->alloc*sizeof(zz_digit_t);
+}
+
 static struct {
     void *(*default_allocate_func)(size_t);
     void *(*default_reallocate_func)(void *, size_t, size_t);

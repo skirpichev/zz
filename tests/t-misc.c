@@ -788,6 +788,19 @@ check_fac_outofmem(void)
     zz_set_memory_funcs(NULL, NULL, NULL);
 }
 
+void
+check_sizeof(void)
+{
+    zz_t u;
+
+    if (zz_init(&u) || zz_set(1, &u)
+        || zz_sizeof(&u) < sizeof(zz_t) + sizeof(zz_digit_t))
+    {
+        abort();
+    }
+    zz_clear(&u);
+}
+
 int main(void)
 {
     zz_testinit();
@@ -818,6 +831,7 @@ int main(void)
     check_fromto_i64();
     check_exportimport_roundtrip();
     check_exportimport_examples();
+    check_sizeof();
 #ifdef HAVE_SYS_RESOURCE_H
     struct rlimit new, old;
 

@@ -428,6 +428,10 @@ Return the population count of @var{u} magnitude in binary.
 Determine whether @var{u} is zero, negative or odd.
 @end deftypefun
 
+@deftypefun size_t zz_sizeof(const zz_t *@var{u})
+Return the size of @var{u} in bytes.
+@end deftypefun
+
 @deftypefun const char * zz_get_version (void)
 Get the ZZ version number, as a null-terminated string, in the form ``i.j.k''.
 @end deftypefun

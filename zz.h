@@ -260,6 +260,8 @@ bool zz_iszero(const zz_t *u);
 bool zz_isneg(const zz_t *u);
 bool zz_isodd(const zz_t *u);
 
+size_t zz_sizeof(const zz_t *u);
+
 const char * zz_get_version(void);
 
 zz_bitcnt_t zz_get_bitcnt_max(void);
