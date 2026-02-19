@@ -1262,12 +1262,11 @@ zz_mul(const zz_t *u, const zz_t *v, zz_t *w)
 zz_err
 zz_mul_u64(const zz_t *u, uint64_t v, zz_t *w)
 {
-    if (!u->size || !v) {
-        return zz_set_i64(0, w);
-    }
-
     zz_size_t u_size = u->size;
 
+    if (!u_size || !v) {
+        return zz_set_i64(0, w);
+    }
     if (u_size == ZZ_DIGITS_MAX) {
         return ZZ_BUF; /* LCOV_EXCL_LINE */
     }
@@ -1275,8 +1274,8 @@ zz_mul_u64(const zz_t *u, uint64_t v, zz_t *w)
         return ZZ_MEM; /* LCOV_EXCL_LINE */
     }
     SETNEG(ISNEG(u), w);
-    w->digits[w->size - 1] = mpn_mul_1(w->digits, u->digits, u_size, v);
-    w->size -= w->digits[w->size - 1] == 0;
+    w->digits[u_size] = mpn_mul_1(w->digits, u->digits, u_size, v);
+    w->size -= w->digits[u_size] == 0;
     assert(w->size >= 1);
     return ZZ_OK;
 }
