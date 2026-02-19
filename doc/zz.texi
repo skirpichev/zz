@@ -83,8 +83,14 @@ under the terms of the GNU Free Documentation License.
 @chapter Introduction
 
 Library functions and structures are declared in the header file @file{zz.h}.
-Names of public functions and structures are beginning with @code{zz_}.  The
-data type for big integers is @code{zz_t}.
+Names of public functions and structures are beginning with @code{zz_}.
+
+The data type for big integers is @code{zz_t} with following fields:
+
+@itemize @bullet
+@item @code{size}: number of digits.
+@item @code{digits}: array of digits.
+@end itemize
 
 If function might fail, it has the @code{zz_err} as returned type.  Following
 return codes are supported and should be expected from any such function,
