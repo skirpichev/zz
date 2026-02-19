@@ -359,44 +359,37 @@ zz_cmp(const zz_t *u, const zz_t *v)
     }
 
     bool u_negative = ISNEG(u);
-    zz_ord sign = u_negative ? ZZ_LT : ZZ_GT;
+    zz_ord res = u_negative ? ZZ_LT : ZZ_GT;
 
     if (u_negative != ISNEG(v)) {
-        return sign;
+        return res;
     }
     else if (u->size != v->size) {
-        return (u->size < v->size) ? -sign : sign;
+        return (u->size < v->size) ? -res : res;
     }
-
-    zz_ord r = mpn_cmp(u->digits, v->digits, u->size);
-
-    return u_negative ? -r : r;
+    res = mpn_cmp(u->digits, v->digits, u->size);
+    return u_negative ? -res : res;
 }
 
 zz_ord
 zz_cmp_i64(const zz_t *u, int64_t v)
 {
     bool u_negative = ISNEG(u);
-    zz_ord sign = u_negative ? ZZ_LT : ZZ_GT;
-    bool v_negative = v < 0;
+    zz_ord res = u_negative ? ZZ_LT : ZZ_GT;
 
-    if (u_negative != v_negative) {
-        return sign;
+    if (u_negative != (v < 0) || u->size > 1) {
+        return res;
     }
-    else if (u->size != 1) {
-        return u->size ? sign : (v ? -sign : ZZ_EQ);
+    else if (!u->size) {
+        return v ? -res : ZZ_EQ;
     }
 
-    zz_digit_t digit = ABS_CAST(zz_digit_t, v);
-    zz_ord r = u->digits[0] != digit;
+    zz_digit_t uu = u->digits[0], uv = ABS_CAST(zz_digit_t, v);
 
-    if (u->digits[0] < digit) {
-        r = ZZ_LT;
+    if (uu == uv) {
+        return ZZ_EQ;
     }
-    else if (u->digits[0] > digit) {
-        r = ZZ_GT;
-    }
-    return u_negative ? -r : r;
+    return uu > uv ? res : -res;
 }
 
 zz_err
