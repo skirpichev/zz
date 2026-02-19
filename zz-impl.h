@@ -85,6 +85,7 @@ static _Thread_local jmp_buf zz_env;
 
 #define MAX(a, b) ((a) >= (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define ABS_CAST(T, x) ((x) >= 0 ? ((T) (x)) : ((T) (((T) -((x) + 1)) + 1U)))
 
 void zz_set_memory_funcs(void *(*malloc) (size_t),
                          void *(*realloc) (void *, size_t, size_t),

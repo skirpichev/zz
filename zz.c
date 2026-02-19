@@ -387,7 +387,7 @@ zz_cmp_i64(const zz_t *u, int64_t v)
         return u->size ? sign : (v ? -sign : ZZ_EQ);
     }
 
-    zz_digit_t digit = (zz_digit_t)imaxabs(v);
+    zz_digit_t digit = ABS_CAST(zz_digit_t, v);
     zz_ord r = u->digits[0] != digit;
 
     if (u->digits[0] < digit) {
@@ -422,7 +422,7 @@ zz_set_i32(int32_t u, zz_t *v)
         return ZZ_MEM; /* LCOV_EXCL_LINE */
     }
     SETNEG(u < 0, v);
-    v->digits[0] = (zz_digit_t)imaxabs(u);
+    v->digits[0] = (zz_digit_t)abs(u);
     return ZZ_OK;
 }
 
@@ -434,15 +434,11 @@ zz_set_i64(int64_t u, zz_t *v)
         SETNEG(false, v);
         return ZZ_OK;
     }
-
-    bool negative = u < 0;
-    zz_digit_t uv = (negative ? -((zz_digit_t)(u + 1) - 1) : (zz_digit_t)(u));
-
     if (zz_resize(1, v)) {
         return ZZ_MEM; /* LCOV_EXCL_LINE */
     }
-    SETNEG(negative, v);
-    v->digits[0] = uv;
+    SETNEG(u < 0, v);
+    v->digits[0] = ABS_CAST(zz_digit_t, u);
     return ZZ_OK;
 }
 
@@ -1125,7 +1121,7 @@ zz_addsub_u64(const zz_t *u, uint64_t v, bool subtract, zz_t *w)
 zz_err
 zz_addsub_i64(const zz_t *u, int64_t v, bool subtract, zz_t *w)
 {
-    uint64_t uv = v < 0 ? -((uint64_t)(v + 1) - 1) : (uint64_t)v;
+    uint64_t uv = ABS_CAST(uint64_t, v);
 
     return zz_addsub_u64(u, uv, subtract ? v >= 0 : v < 0, w);
 }
@@ -1280,7 +1276,7 @@ zz_mul_u64(const zz_t *u, uint64_t v, zz_t *w)
 zz_err
 zz_mul_i64(const zz_t *u, int64_t v, zz_t *w)
 {
-    zz_err ret = zz_mul_u64(u, (zz_digit_t)imaxabs(v), w);
+    zz_err ret = zz_mul_u64(u, ABS_CAST(zz_digit_t, v), w);
 
     if (w->size) {
         SETNEG(ISNEG(u) != (v < 0), w);
@@ -1413,7 +1409,7 @@ zz_div_i64(const zz_t *u, int64_t v, zz_t *q, zz_t *r)
         return ZZ_VAL;
     }
 
-    zz_digit_t rl, uv = v < 0 ? -((zz_digit_t)(v + 1) - 1) : (zz_digit_t)v;
+    zz_digit_t rl, uv = ABS_CAST(zz_digit_t, v);
     bool same_signs = ISNEG(u) == (v < 0);
 
     if (q) {
@@ -2190,7 +2186,7 @@ zz_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
                                         v->size);
     SETNEG(false, tmp_g);
     /* Now s either 1 or |s| < v/(2g) */
-    if (zz_resize((zz_size_t)imaxabs(ssize), tmp_s)) {
+    if (zz_resize(labs(ssize), tmp_s)) {
         goto clear; /* LCOV_EXCL_LINE */
     }
     mpn_copyi(tmp_s->digits, tmp_s_digits, tmp_s->size);
