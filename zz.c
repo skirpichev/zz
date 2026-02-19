@@ -52,7 +52,7 @@ zz_get_bitcnt_max(void)
 size_t
 zz_sizeof(const zz_t *u)
 {
-    return sizeof(zz_t) + (size_t)u->alloc*sizeof(zz_digit_t);
+    return sizeof(zz_t) + (size_t)GETALLOC(u)*sizeof(zz_digit_t);
 }
 
 static struct {
@@ -298,7 +298,7 @@ zz_err
 zz_init(zz_t *u)
 {
     SETNEG(false, u);
-    u->alloc = 0;
+    SETALLOC(0, u);
     u->size = 0;
     u->digits = NULL;
     return ZZ_OK;
@@ -307,7 +307,7 @@ zz_init(zz_t *u)
 static zz_err
 zz_resize(zz_size_t size, zz_t *u)
 {
-    if (u->alloc >= size) {
+    if (GETALLOC(u) >= size) {
         u->size = size;
         if (!u->size) {
             SETNEG(false, u);
@@ -320,7 +320,7 @@ zz_resize(zz_size_t size, zz_t *u)
 
     u->digits = realloc(u->digits, (size_t)alloc * ZZ_DIGIT_T_BYTES);
     if (u->digits) {
-        u->alloc = alloc;
+        SETALLOC(alloc, u);
         u->size = alloc;
         return ZZ_OK;
     }
@@ -335,7 +335,7 @@ zz_clear(zz_t *u)
 {
     free(u->digits);
     SETNEG(false, u);
-    u->alloc = 0;
+    SETALLOC(0, u);
     u->size = 0;
     u->digits = NULL;
 }

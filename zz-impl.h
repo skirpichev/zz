@@ -65,6 +65,9 @@ static _Thread_local jmp_buf zz_env;
 #define ISNEG(u) ((u)->negative)
 #define SETNEG(u, v) ((v)->negative = u)
 
+#define GETALLOC(u) ((u)->alloc)
+#define SETALLOC(u, v) ((v)->alloc = (u))
+
 #define TMP_MPZ(z, u)                                   \
     mpz_t z;                                            \
                                                         \
