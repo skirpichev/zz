@@ -529,9 +529,7 @@ check_shift_examples(void)
     {
         abort();
     }
-    if (zz_isneg(&u) || u.alloc < 1 || u.size != 1
-        || u.digits[0] != 0xffffffffffffffffULL)
-    {
+    if (zz_isneg(&u) || u.size != 1 || u.digits[0] != 0xffffffffffffffffULL) {
         abort();
     }
     if (zz_set(0x7fffffffffffffffLL, &v)) {
