@@ -1042,8 +1042,12 @@ zz_addsub(const zz_t *u, const zz_t *v, bool subtract, zz_t *w)
     SETNEG(negu, w);
     /* We use undocumented feature of mpn_add/sub(): v_size can be 0 */
     if (same_sign) {
-        w->digits[w->size - 1] = mpn_add(w->digits, u->digits, u_size,
-                                         v->digits, v_size);
+        if (!(w->digits[w->size - 1] = mpn_add(w->digits, u->digits, u_size,
+                                               v->digits, v_size)))
+        {
+            w->size--;
+        }
+        return ZZ_OK;
     }
     else if (u_size != v_size) {
         mpn_sub(w->digits, u->digits, u_size, v->digits, v_size);
@@ -1059,7 +1063,9 @@ zz_addsub(const zz_t *u, const zz_t *v, bool subtract, zz_t *w)
             mpn_sub_n(w->digits, u->digits, v->digits, u_size);
         }
         else {
+            SETNEG(false, w);
             w->size = 0;
+            return ZZ_OK;
         }
     }
     zz_normalize(w);
@@ -1067,24 +1073,25 @@ zz_addsub(const zz_t *u, const zz_t *v, bool subtract, zz_t *w)
 }
 
 static zz_err
-zz_addsub_u64(const zz_t *u, uint64_t v, bool subtract, zz_t *w)
+zz_addsub_u64(const zz_t *u, uint64_t v, bool negv, zz_t *w)
 {
-    bool negu = ISNEG(u), negv = subtract;
-    bool same_sign = negu == negv;
-    zz_size_t u_size = u->size, v_size = v != 0;
+    bool negu = ISNEG(u), same_sign = negu == negv, v_size = v != 0;
+    zz_size_t u_size = u->size;
 
-    if (!u_size || u_size < v_size) {
-        assert(!u_size);
-        if (zz_resize(v_size, w)) {
-            return ZZ_MEM; /* LCOV_EXCL_LINE */
-        }
+    if (!u_size) {
         if (v_size) {
+            if (zz_resize(v_size, w)) {
+                return ZZ_MEM; /* LCOV_EXCL_LINE */
+            }
             w->digits[0] = v;
+            SETNEG(negv, w);
         }
-        SETNEG(w->size ? negv : false, w);
+        else {
+            w->size = 0;
+            SETNEG(false, w);
+        }
         return ZZ_OK;
     }
-
     if (same_sign && u_size == ZZ_DIGITS_MAX) {
         return ZZ_BUF; /* LCOV_EXCL_LINE */
     }
@@ -1093,11 +1100,15 @@ zz_addsub_u64(const zz_t *u, uint64_t v, bool subtract, zz_t *w)
     }
     SETNEG(negu, w);
     if (same_sign) {
-        w->digits[w->size - 1] = mpn_add_1(w->digits, u->digits, u_size, v);
+        if (!(w->digits[u_size] = mpn_add_1(w->digits, u->digits, u_size, v))) {
+            w->size--;
+        }
     }
-    else if (u_size != 1) {
+    else if (u_size > 1) {
         mpn_sub_1(w->digits, u->digits, u_size, v);
+        w->size -= w->digits[w->size - 1] == 0;
     }
+
     else {
         if (u->digits[0] < v) {
             w->digits[0] = v - u->digits[0];
@@ -1105,18 +1116,22 @@ zz_addsub_u64(const zz_t *u, uint64_t v, bool subtract, zz_t *w)
         }
         else {
             w->digits[0] = u->digits[0] - v;
+            if (!w->digits[0]) {
+                w->size = 0;
+                SETNEG(false, w);
+            }
         }
     }
-    zz_normalize(w);
     return ZZ_OK;
 }
 
 zz_err
 zz_addsub_i64(const zz_t *u, int64_t v, bool subtract, zz_t *w)
 {
+    bool negv = v < 0;
     uint64_t uv = ABS_CAST(uint64_t, v);
 
-    return zz_addsub_u64(u, uv, subtract ? v >= 0 : v < 0, w);
+    return zz_addsub_u64(u, uv, subtract ? !negv : negv, w);
 }
 
 zz_err
