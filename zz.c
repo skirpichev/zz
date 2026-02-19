@@ -1090,9 +1090,7 @@ zz_addsub_u64(const zz_t *u, uint64_t v, bool subtract, zz_t *w)
         if (v_size) {
             w->digits[0] = v;
         }
-        if (w->size) {
-            w->negative = negv;
-        }
+        w->negative = w->size ? negv : false;
         return ZZ_OK;
     }
 
@@ -1417,7 +1415,6 @@ zz_div_i64(const zz_t *u, int64_t v, zz_t *q, zz_t *r)
     bool same_signs = u->negative == (v < 0);
 
     if (q) {
-        q->negative = false;
         if (u->size) {
             if (zz_resize(u->size, q)) {
                 return ZZ_MEM; /* LCOV_EXCL_LINE */
@@ -1427,19 +1424,15 @@ zz_div_i64(const zz_t *u, int64_t v, zz_t *q, zz_t *r)
                 mpn_add_1(q->digits, q->digits, q->size, 1);
             }
             q->size -= q->digits[q->size - 1] == 0;
-            if (q->size) {
-                q->negative = !same_signs;
-            }
+            q->negative = q->size ? !same_signs : false;
         }
         else {
-            q->size = 0;
+            (void)zz_set_i32(0, q);
         }
     }
     if (r) {
         if (!u->size) {
-            r->size = 0;
-            r->negative = false;
-            return ZZ_OK;
+            return zz_set_i32(0, r);
         }
 
         zz_size_t u_size = u->size;
@@ -1449,8 +1442,7 @@ zz_div_i64(const zz_t *u, int64_t v, zz_t *q, zz_t *r)
         }
         rl = mpn_mod_1(u->digits, u_size, uv);
         if (!rl) {
-            r->size = 0;
-            r->negative = false;
+            (void)zz_set_i32(0, r);
         }
         else {
             if (!same_signs) {
@@ -1508,8 +1500,7 @@ zz_err
 zz_quo_2exp(const zz_t *u, zz_bitcnt_t shift, zz_t *v)
 {
     if (!u->size) {
-        v->size = 0;
-        return ZZ_OK;
+        return zz_set_i32(0, v);
     }
     if (shift >= (zz_bitcnt_t)u->size*ZZ_DIGIT_T_BITS) {
         return zz_set_i64(u->negative ? -1 : 0, v);
@@ -1562,8 +1553,7 @@ zz_err
 zz_mul_2exp(const zz_t *u, zz_bitcnt_t shift, zz_t *v)
 {
     if (!u->size) {
-        v->size = 0;
-        return ZZ_OK;
+        return zz_set_i32(0, v);
     }
     if (shift > ZZ_BITS_MAX) {
         return ZZ_BUF;
@@ -2161,7 +2151,7 @@ zz_gcdext(const zz_t *u, const zz_t *v, zz_t *g, zz_t *s, zz_t *t)
             if (zz_set_i64(u->negative ? -1 : 1, s)) {
                 return ZZ_MEM; /* LCOV_EXCL_LINE */
             }
-            s->size = u->size > 0;
+            s->size = u->size > 0; /* make 0 if u == 0 */
         }
         if (t) {
             t->size = 0;
