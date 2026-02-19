@@ -71,7 +71,7 @@ static _Thread_local jmp_buf zz_env;
     assert((u)->size <= INT_MAX);                       \
     z->_mp_d = (u)->digits;                             \
     z->_mp_size = (ISNEG(u) ? -1 : 1) * (int)(u)->size; \
-    z->_mp_alloc = (int)(u)->alloc;
+    z->_mp_alloc = (int)(u)->size;
 
 #define SWAP(T, a, b) \
     do {              \
